@@ -62,6 +62,11 @@ function Tress(worker, concurrency){ // function worker(job, done)
     Object.defineProperty(this, 'concurrency', { get: () => _concurrency });
     Object.defineProperty(this, 'started', { get: () => _started });
     Object.defineProperty(this, 'paused', { get: () => _paused });
+    Object.defineProperty(this, 'idle', { get: () => _queue.waiting.length === 0 });
+    Object.defineProperty(this, 'length', { get: () => _queue.waiting.length });
+    Object.defineProperty(this, 'running', { get: () => _queue.waiting.length + _queue.running.length });
+    Object.defineProperty(this, 'workersList', { get: () => _queue.running });
+
 }
 
 module.exports = Tress;
