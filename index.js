@@ -84,9 +84,9 @@ function Tress(worker, concurrency){ // function worker(job, done)
         _startJob();
     };
 
-    Object.defineProperty(this, 'empty', { set: (f) => {_onEmpty = _set(f, 'function');}}); // no waiting jobs
-    Object.defineProperty(this, 'drain', { set: (f) => {_onDrain = _set(f, 'function');}}); // no waiting or running jobs
-    Object.defineProperty(this, 'saturated', { set: (f) => {_onSaturated = _set(f, 'function');}}); //no more free workers
+    Object.defineProperty(this, 'empty', { set: (f) => {_onEmpty = _set(f);}}); // no waiting jobs
+    Object.defineProperty(this, 'drain', { set: (f) => {_onDrain = _set(f);}}); // no waiting or running jobs
+    Object.defineProperty(this, 'saturated', { set: (f) => {_onSaturated = _set(f);}}); //no more free workers
 
     Object.defineProperty(this, 'concurrency', { get: () => _concurrency });
     Object.defineProperty(this, 'started', { get: () => _started });
@@ -100,14 +100,14 @@ function Tress(worker, concurrency){ // function worker(job, done)
 
 module.exports = Tress;
 
-function _set(v, t){
-    if (v == undefined && t === 'function') {
+function _set(v){
+    if (v === undefined || v === null) {
         return _dummy;
     }
-    if (typeof v === t) {
+    if (typeof v === 'function') {
         return v;
     }
-    throw new Error('Type must be ' + t);
+    throw new Error('Type must be function');
 }
 
 function _dummy(){}
