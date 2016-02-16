@@ -12,6 +12,10 @@ function Tress(worker, concurrency){ // function worker(job, done)
     };
     var _results = [];
 
+    var _onEmpty = _dummy;
+    var _onDrain = _dummy;
+    var _onSaturated = _dummy;
+
     var _jobDone = function(job){
         return function(result){
             _results.push(result);
@@ -19,6 +23,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
             var i = _queue.running.indexOf(job);
             if (i > -1) {
                 _queue.running.splice(i, 1);
+                if(_queue.waiting.length === 0 && _queue.running.length === 0) _onDrain(_results);
             }
             _startJob();
         }
@@ -26,8 +31,13 @@ function Tress(worker, concurrency){ // function worker(job, done)
 
     var _startJob = function(){
         if (_paused || _queue.running.length === _concurrency || _queue.waiting.length === 0) return;
+
         var job = _queue.waiting.shift();
+        if(_queue.waiting.length === 0) _onEmpty();
+
         _queue.running.push(job);
+        if(_queue.running.length === _concurrency) _onSaturated();
+
         worker(job, _jobDone(job));
         _startJob();
     }
@@ -59,6 +69,10 @@ function Tress(worker, concurrency){ // function worker(job, done)
         _startJob();
     };
 
+    Object.defineProperty(this, 'empty', { set: (f) => {_onEmpty = _set(f, 'function');}}); // no waiting jobs
+    Object.defineProperty(this, 'drain', { set: (f) => {_onDrain = _set(f, 'function');}}); // no waiting or running jobs
+    Object.defineProperty(this, 'saturated', { set: (f) => {_onSaturated = _set(f, 'function');}}); //no more free workers
+
     Object.defineProperty(this, 'concurrency', { get: () => _concurrency });
     Object.defineProperty(this, 'started', { get: () => _started });
     Object.defineProperty(this, 'paused', { get: () => _paused });
@@ -70,3 +84,15 @@ function Tress(worker, concurrency){ // function worker(job, done)
 }
 
 module.exports = Tress;
+
+function _set(v, t){
+    if (v == undefined && t === 'function') {
+        return _dummy;
+    }
+    if (typeof v === t) {
+        return v;
+    }
+    throw new Error('Type must be ' + t);
+}
+
+function _dummy(){}
