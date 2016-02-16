@@ -8,12 +8,14 @@ function Tress(worker, concurrency){ // function worker(job, done)
     var _queue = {
         waiting: [],
         running: [],
+        finished: []
     };
     var _results = [];
 
     var _jobDone = function(job){
         return function(result){
             _results.push(result);
+            _queue.finished.push(job);
             var i = _queue.running.indexOf(job);
             if (i > -1) {
                 _queue.running.splice(i, 1);
