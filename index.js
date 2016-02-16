@@ -8,6 +8,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     var _queue = {
         waiting: [],
         running: [],
+        errors: [],
         finished: []
     };
     var _results = [];
@@ -17,19 +18,24 @@ function Tress(worker, concurrency){ // function worker(job, done)
     var _onSaturated = _dummy;
 
     var _jobDone = function(job){
-        return function(result){
-            _results.push(result);
-            _queue.finished.push(job);
+        return function(err, result){
             var i = _queue.running.indexOf(job);
-            if (i > -1) {
-                _queue.running.splice(i, 1);
-                if(_queue.waiting.length === 0 && _queue.running.length === 0) _onDrain(_results);
+            if (i > -1) _queue.running.splice(i, 1);
+
+            if (err) {
+                _queue.errors.push(job);
+                _onError(job);
+            } else {
+                _results.push(result);
+                _queue.finished.push(job);
             }
             _startJob();
         };
     };
 
     var _startJob = function(){
+        if(_queue.waiting.length === 0 && _queue.running.length === 0) _onDrain(_results);
+
         if (_paused || _queue.running.length === _concurrency || _queue.waiting.length === 0) return;
 
         var job = _queue.waiting.shift();
@@ -87,6 +93,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     Object.defineProperty(this, 'empty', { set: (f) => {_onEmpty = _set(f);}}); // no waiting jobs
     Object.defineProperty(this, 'drain', { set: (f) => {_onDrain = _set(f);}}); // no waiting or running jobs
     Object.defineProperty(this, 'saturated', { set: (f) => {_onSaturated = _set(f);}}); //no more free workers
+    Object.defineProperty(this, 'error', { set: (f) => {_onError = _set(f);}}); //no more free workers
 
     Object.defineProperty(this, 'concurrency', { get: () => _concurrency });
     Object.defineProperty(this, 'started', { get: () => _started });
