@@ -3,6 +3,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     if(!(this instanceof Tress)) {return new Tress(worker, concurrency);}
 
     var _concurrency = concurrency || 1;
+    var _started = false;
     var _paused = false;
     var _queue = {
         waiting: [],
@@ -30,6 +31,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     }
 
     var _addJob = function(job, prior){
+        _started = true;
         if (prior) {
             _queue.waiting.unshift(job);
         } else {
@@ -56,6 +58,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     };
 
     Object.defineProperty(this, 'concurrency', { get: () => _concurrency });
+    Object.defineProperty(this, 'started', { get: () => _started });
     Object.defineProperty(this, 'paused', { get: () => _paused });
 }
 
