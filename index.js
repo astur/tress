@@ -44,11 +44,26 @@ function Tress(worker, concurrency){ // function worker(job, done)
 
     var _addJob = function(job, prior){
         _started = true;
+
+        var jobType = Object.prototype.toString.call(job).slice(8,-1);
+        switch (jobType){
+            case 'Array':
+                for (var i = 0; i < job.length; i++) {
+                    _addJob(job[i], prior);
+                };
+                return;
+            case 'Object':
+            case 'Function':
+            case 'Undefined':
+                throw new Error('Unable to add ' + jobType + ' to queue');
+        }
+
         if (prior) {
             _queue.waiting.unshift(job);
         } else {
             _queue.waiting.push(job);
         }
+
         _startJob();
     }
 
