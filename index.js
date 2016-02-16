@@ -26,8 +26,8 @@ function Tress(worker, concurrency){ // function worker(job, done)
                 if(_queue.waiting.length === 0 && _queue.running.length === 0) _onDrain(_results);
             }
             _startJob();
-        }
-    }
+        };
+    };
 
     var _startJob = function(){
         if (_paused || _queue.running.length === _concurrency || _queue.waiting.length === 0) return;
@@ -40,7 +40,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
 
         worker(job, _jobDone(job));
         _startJob();
-    }
+    };
 
     var _addJob = function(job, prior){
         _started = true;
@@ -50,7 +50,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
             case 'Array':
                 for (var i = 0; i < job.length; i++) {
                     _addJob(job[i], prior);
-                };
+                }
                 return;
             case 'Object':
             case 'Function':
@@ -65,7 +65,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
         }
 
         _startJob();
-    }
+    };
 
     this.push = function(job){
         _addJob(job);
