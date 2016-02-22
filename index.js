@@ -14,21 +14,6 @@ function Tress(worker, concurrency){ // function worker(job, done)
     var _onDrain = function(){};
     var _onError = function(){};
 
-    var _jobDone = function(job){
-        return function(err){
-            var i = _queue.running.indexOf(job);
-            if (i > -1) _queue.running.splice(i, 1);
-
-            if (err) {
-                _queue.errors.push(job);
-                _onError(job);
-            } else {
-                _queue.finished.push(job);
-            }
-            _startJob();
-        };
-    };
-
     var _startJob = function(){
         if(_queue.waiting.length === 0 && _queue.running.length === 0) _onDrain();
 
@@ -37,7 +22,14 @@ function Tress(worker, concurrency){ // function worker(job, done)
         var job = _queue.waiting.shift();
         _queue.running.push(job);
 
-        worker(job, _jobDone(job));
+        worker(job, (err) => {
+            var i = _queue.running.indexOf(job);
+            if (i > -1) _queue.running.splice(i, 1);
+            _queue[err ? 'errors' : 'finished'].push(job);
+            if (err) _onError(job);
+            _startJob();
+        });
+
         _startJob();
     };
 
@@ -64,19 +56,10 @@ function Tress(worker, concurrency){ // function worker(job, done)
         _startJob();
     };
 
-    this.push = function(job){
-        _addJob(job);
-    };
-
-    this.unshift = function(job){
-        _addJob(job, true);
-    };
-
-    this.pause = function(){
-        _paused = true;
-    };
-
-    this.resume = function(){
+    this.push = (job) => _addJob(job);
+    this.unshift = (job) => _addJob(job, true);
+    this.pause = () => _paused = true;
+    this.resume = () => {
         _paused = false;
         _startJob();
     };
@@ -92,11 +75,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
 module.exports = Tress;
 
 function _set(v){
-    if (v === undefined || v === null) {
-        return function(){};
-    }
-    if (typeof v === 'function') {
-        return v;
-    }
+    if (v === undefined || v === null) return function(){};
+    if (typeof v === 'function') return v;
     throw new Error('Type must be function');
 }
