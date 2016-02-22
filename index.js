@@ -11,7 +11,6 @@ function Tress(worker, concurrency){ // function worker(job, done)
         errors: [],
         finished: []
     };
-    var _results = [];
 
     var _onEmpty = _dummy;
     var _onDrain = _dummy;
@@ -19,7 +18,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     var _onError = _dummy;
 
     var _jobDone = function(job){
-        return function(err, result){
+        return function(err){
             var i = _queue.running.indexOf(job);
             if (i > -1) _queue.running.splice(i, 1);
 
@@ -27,7 +26,6 @@ function Tress(worker, concurrency){ // function worker(job, done)
                 _queue.errors.push(job);
                 _onError(job);
             } else {
-                _results.push(result);
                 _queue.finished.push(job);
             }
             _startJob();
@@ -35,7 +33,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     };
 
     var _startJob = function(){
-        if(_queue.waiting.length === 0 && _queue.running.length === 0) _onDrain(_results);
+        if(_queue.waiting.length === 0 && _queue.running.length === 0) _onDrain();
 
         if (_paused || _queue.running.length === _concurrency || _queue.waiting.length === 0) return;
 
