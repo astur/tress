@@ -3,7 +3,6 @@ function Tress(worker, concurrency){ // function worker(job, done)
     if(!(this instanceof Tress)) {return new Tress(worker, concurrency);}
 
     var _concurrency = concurrency || 1;
-    var _started = false;
     var _paused = false;
     var _queue = {
         waiting: [],
@@ -12,10 +11,8 @@ function Tress(worker, concurrency){ // function worker(job, done)
         finished: []
     };
 
-    var _onEmpty = _dummy;
-    var _onDrain = _dummy;
-    var _onSaturated = _dummy;
-    var _onError = _dummy;
+    var _onDrain = function(){};
+    var _onError = function(){};
 
     var _jobDone = function(job){
         return function(err){
@@ -38,18 +35,13 @@ function Tress(worker, concurrency){ // function worker(job, done)
         if (_paused || _queue.running.length === _concurrency || _queue.waiting.length === 0) return;
 
         var job = _queue.waiting.shift();
-        if(_queue.waiting.length === 0) _onEmpty();
-
         _queue.running.push(job);
-        if(_queue.running.length === _concurrency) _onSaturated();
 
         worker(job, _jobDone(job));
         _startJob();
     };
 
     var _addJob = function(job, prior){
-        _started = true;
-
         var jobType = Object.prototype.toString.call(job).slice(8,-1);
         switch (jobType){
             case 'Array':
@@ -89,19 +81,10 @@ function Tress(worker, concurrency){ // function worker(job, done)
         _startJob();
     };
 
-    Object.defineProperty(this, 'empty', { set: (f) => {_onEmpty = _set(f);}}); // no waiting jobs
-    Object.defineProperty(this, 'drain', { set: (f) => {_onDrain = _set(f);}}); // no waiting or running jobs
-    Object.defineProperty(this, 'saturated', { set: (f) => {_onSaturated = _set(f);}}); //no more free workers
-    Object.defineProperty(this, 'error', { set: (f) => {_onError = _set(f);}}); //no more free workers
-
+    Object.defineProperty(this, 'drain', { set: (f) => {_onDrain = _set(f);}});
+    Object.defineProperty(this, 'error', { set: (f) => {_onError = _set(f);}});
     Object.defineProperty(this, 'concurrency', { get: () => _concurrency });
-    Object.defineProperty(this, 'started', { get: () => _started });
     Object.defineProperty(this, 'paused', { get: () => _paused });
-    Object.defineProperty(this, 'idle', { get: () => _queue.waiting.length === 0 });
-    Object.defineProperty(this, 'length', { get: () => _queue.waiting.length });
-    Object.defineProperty(this, 'running', { get: () => _queue.waiting.length + _queue.running.length });
-    Object.defineProperty(this, 'workersList', { get: () => _queue.running });
-
     Object.defineProperty(this, 'queue', { get: () => _queue });
 
 }
@@ -110,12 +93,10 @@ module.exports = Tress;
 
 function _set(v){
     if (v === undefined || v === null) {
-        return _dummy;
+        return function(){};
     }
     if (typeof v === 'function') {
         return v;
     }
     throw new Error('Type must be function');
 }
-
-function _dummy(){}
