@@ -16,6 +16,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     var _onEmpty = _dummy;
     var _onDrain = _dummy;
     var _onSaturated = _dummy;
+    var _onError = _dummy;
 
     var _jobDone = function(job){
         return function(err, result){
