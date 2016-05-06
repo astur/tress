@@ -22,10 +22,10 @@ function Tress(worker, concurrency){ // function worker(job, done)
         var job = _queue.waiting.shift();
         _queue.running.push(job);
 
-        worker(job, (err) => {
+        worker(job, function(err){
             _queue.running = _queue.running.filter((v) => v !== job);
             _queue[err ? 'errors' : 'finished'].push(job);
-            if (err) _onError(job);
+            err && _onError.apply(job, arguments);
             _startJob();
         });
 
