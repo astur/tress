@@ -13,6 +13,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
 
     var _onDrain = function(){};
     var _onError = function(){};
+    var _onSuccess = function(){};
 
     var _startJob = function(){
         if(_queue.waiting.length === 0 && _queue.running.length === 0) _onDrain();
@@ -26,6 +27,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
             _queue.running = _queue.running.filter((v) => v !== job);
             _queue[err ? 'errors' : 'finished'].push(job);
             err && _onError.apply(job, arguments);
+            !err && _onSuccess.apply(job, Array.prototype.slice.call(arguments, 1));
             _startJob();
         });
 
@@ -64,6 +66,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
 
     Object.defineProperty(this, 'drain', { set: (f) => {_onDrain = _set(f);}});
     Object.defineProperty(this, 'error', { set: (f) => {_onError = _set(f);}});
+    Object.defineProperty(this, 'success', { set: (f) => {_onSuccess = _set(f);}});
     Object.defineProperty(this, 'concurrency', { get: () => _concurrency });
     Object.defineProperty(this, 'paused', { get: () => _paused });
     Object.defineProperty(this, 'queue', { get: () => _queue });
