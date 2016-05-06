@@ -23,41 +23,46 @@ function Tress(worker, concurrency){ // function worker(job, done)
         var job = _queue.waiting.shift();
         _queue.running.push(job);
 
-        worker(job, function(err){
+        worker(job.data, function(err){
             _queue.running = _queue.running.filter((v) => v !== job);
             _queue[err ? 'errors' : 'finished'].push(job);
-            err && _onError.apply(job, arguments);
-            !err && _onSuccess.apply(job, Array.prototype.slice.call(arguments, 1));
+            job.callback && job.callback.apply(job.data, arguments);
+            err && _onError.apply(job.data, arguments);
+            !err && _onSuccess.apply(job.data, Array.prototype.slice.call(arguments, 1));
             _startJob();
         });
 
         _startJob();
     };
 
-    var _addJob = function(job, prior){
+    var _addJob = function(job, callback, prior){
+        callback = _set(callback);
         var jobType = Object.prototype.toString.call(job).slice(8,-1);
         switch (jobType){
             case 'Array':
                 for (var i = 0; i < job.length; i++) {
-                    _addJob(job[i], prior);
+                    _addJob(job[i], callback, prior);
                 }
                 return;
             case 'Function':
             case 'Undefined':
                 throw new Error('Unable to add ' + jobType + ' to queue');
         }
-
+        var jobObject = {
+            data: job,
+            callback: callback
+        }
         if (prior) {
-            _queue.waiting.unshift(job);
+            _queue.waiting.unshift(jobObject);
         } else {
-            _queue.waiting.push(job);
+            _queue.waiting.push(jobObject);
         }
 
         _startJob();
     };
 
-    this.push = (job) => _addJob(job);
-    this.unshift = (job) => _addJob(job, true);
+    this.push = (job, callback) => _addJob(job, callback);
+    this.unshift = (job, callback) => _addJob(job, callback, true);
     this.pause = () => _paused = true;
     this.resume = () => {
         _paused = false;
