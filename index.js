@@ -23,8 +23,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
         _queue.running.push(job);
 
         worker(job, (err) => {
-            var i = _queue.running.indexOf(job);
-            if (i > -1) _queue.running.splice(i, 1);
+            _queue.running = _queue.running.filter((v) => v !== job);
             _queue[err ? 'errors' : 'finished'].push(job);
             if (err) _onError(job);
             _startJob();
@@ -41,7 +40,6 @@ function Tress(worker, concurrency){ // function worker(job, done)
                     _addJob(job[i], prior);
                 }
                 return;
-            case 'Object':
             case 'Function':
             case 'Undefined':
                 throw new Error('Unable to add ' + jobType + ' to queue');
