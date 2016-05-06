@@ -86,6 +86,21 @@ function Tress(worker, concurrency){ // function worker(job, done)
         _onDrain = function(){};
         _queue.waiting = [];
     };
+    this.save = (callback) => callback({
+        waiting: _queue.waiting.slice().concat(_queue.running),
+        errors: _queue.errors.slice(),
+        finished: _queue.finished.slice()
+    });
+    this.load = (data) => {
+        if (_started) throw new Error('Unable to load data after queue started');
+        _queue = {
+            waiting: data.waiting,
+            running: [],
+            errors: data.errors,
+            finished: data.finished
+        };
+        !_paused && _startJob();
+    };
 
     Object.defineProperty(this, 'drain', { set: (f) => {_onDrain = _set(f);}});
     Object.defineProperty(this, 'empty', { set: (f) => {_onEmpty = _set(f);}});
