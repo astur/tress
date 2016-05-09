@@ -70,28 +70,28 @@ function Tress(worker, concurrency){ // function worker(job, done)
         _startJob();
     };
 
-    this.push = (job, callback) => _addJob(job, callback);
-    this.unshift = (job, callback) => _addJob(job, callback, true);
-    this.length = () => _queue.waiting.length;
-    this.running = () => _queue.active.length;
-    this.workersList = () => _queue.active;
-    this.idle = () => _queue.waiting.length + _queue.active.length === 0;
-    this.buffer = _concurrency / 4;
-    this.pause = () => _paused = true;
-    this.resume = () => {
+    _push = (job, callback) => _addJob(job, callback);
+    _unshift = (job, callback) => _addJob(job, callback, true);
+    _length = () => _queue.waiting.length;
+    _running = () => _queue.active.length;
+    _workersList = () => _queue.active;
+    _idle = () => _queue.waiting.length + _queue.active.length === 0;
+    _buffer = _concurrency / 4;
+    _pause = () => _paused = true;
+    _resume = () => {
         _paused = false;
         _startJob();
     };
-    this.kill = () => {
+    _kill = () => {
         _onDrain = function(){};
         _queue.waiting = [];
     };
-    this.save = (callback) => callback({
+    _save = (callback) => callback({
         waiting: _queue.waiting.slice().concat(_queue.active),
         failed: _queue.failed.slice(),
         finished: _queue.finished.slice()
     });
-    this.load = (data) => {
+    _load = (data) => {
         if (_started) throw new Error('Unable to load data after queue started');
         _queue = {
             waiting: data.waiting,
@@ -101,7 +101,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
         };
         !_paused && _startJob();
     };
-    this.status = (job) => {
+    _status = (job) => {
             _queue.waiting.indexOf(job) >= 0 ? 'waiting' :
             _queue.running.indexOf(job) >= 0 ? 'running' :
             _queue.finished.indexOf(job) >= 0 ? 'finished' :
@@ -122,6 +122,22 @@ function Tress(worker, concurrency){ // function worker(job, done)
     Object.defineProperty(this, 'active', { get: () => _queue.active });
     Object.defineProperty(this, 'failed', { get: () => _queue.failed });
     Object.defineProperty(this, 'finished', { get: () => _queue.finished });
+
+    Object.defineProperty(this, 'push', { get: () => _push });
+    Object.defineProperty(this, 'unshift', { get: () => _unshift });
+    Object.defineProperty(this, 'length', { get: () => _length });
+    Object.defineProperty(this, 'running', { get: () => _running });
+    Object.defineProperty(this, 'workersList', { get: () => _workersList });
+    Object.defineProperty(this, 'idle', { get: () => _idle });
+    Object.defineProperty(this, 'buffer', { get: () => _buffer, set: (v) => {
+        if(typeof v === 'number') {_buffer = v;} else {throw new Error('Buffer must be a number');}
+    }});
+    Object.defineProperty(this, 'pause', { get: () => _pause });
+    Object.defineProperty(this, 'resume', { get: () => _resume });
+    Object.defineProperty(this, 'kill', { get: () => _kill });
+    Object.defineProperty(this, 'save', { get: () => _save });
+    Object.defineProperty(this, 'load', { get: () => _load });
+    Object.defineProperty(this, 'status', { get: () => _status });
 
 }
 
