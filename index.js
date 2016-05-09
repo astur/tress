@@ -101,6 +101,13 @@ function Tress(worker, concurrency){ // function worker(job, done)
         };
         !_paused && _startJob();
     };
+    this.status = (job) => {
+            _queue.waiting.indexOf(job) >= 0 ? 'waiting' :
+            _queue.running.indexOf(job) >= 0 ? 'running' :
+            _queue.finished.indexOf(job) >= 0 ? 'finished' :
+            _queue.pending.indexOf(job) >= 0 ? 'pending' :
+            'missing'
+    };
 
     Object.defineProperty(this, 'drain', { set: (f) => {_onDrain = _set(f);}});
     Object.defineProperty(this, 'empty', { set: (f) => {_onEmpty = _set(f);}});
