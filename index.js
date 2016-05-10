@@ -87,17 +87,18 @@ function Tress(worker, concurrency){ // function worker(job, done)
         _queue.waiting = [];
     };
     _save = (callback) => callback({
-        waiting: _queue.waiting.slice().concat(_queue.active),
-        failed: _queue.failed.slice(),
-        finished: _queue.finished.slice()
+        waiting: _queue.waiting.slice().concat(_queue.active).map((v) => v.data),
+        failed: _queue.failed.slice().map((v) => v.data),
+        finished: _queue.finished.slice().map((v) => v.data)
     });
     _load = (data) => {
         if (_started) throw new Error('Unable to load data after queue started');
+        var mapper = (v) => {return {data: v, callback: _set()}};
         _queue = {
-            waiting: data.waiting,
+            waiting: data.waiting.map(mapper),
             active: [],
-            failed: data.failed,
-            finished: data.finished
+            failed: data.failed.map(mapper),
+            finished: data.finished.map(mapper)
         };
         !_paused && _startJob();
     };
