@@ -116,7 +116,9 @@ function Tress(worker, concurrency){ // function worker(job, done)
     Object.defineProperty(this, 'unsaturated', { set: (f) => {_onUnsaturated = _set(f);}});
     Object.defineProperty(this, 'error', { set: (f) => {_onError = _set(f);}});
     Object.defineProperty(this, 'success', { set: (f) => {_onSuccess = _set(f);}});
-    Object.defineProperty(this, 'concurrency', { get: () => _concurrency });
+    Object.defineProperty(this, 'concurrency', { get: () => _concurrency, set: (v) => {
+        _concurrency = v;
+    }});
     Object.defineProperty(this, 'paused', { get: () => _paused });
     Object.defineProperty(this, 'started', { get: () => _started });
     Object.defineProperty(this, 'waiting', { get: () => _queue.waiting });
