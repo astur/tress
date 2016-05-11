@@ -1,7 +1,7 @@
 {
   "name": "tress",
   "version": "1.0.0",
-  "description": "Easy to use asynchronous job queue. Successor of `caolan/async.queue`.",
+  "description": "Easy to use asynchronous job queue. Successor of 'caolan/async.queue'.",
   "main": "index.js",
   "repository": {
     "type": "git",
