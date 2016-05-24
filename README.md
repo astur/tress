@@ -90,7 +90,7 @@ Also `tress` has some new fields in queue object.
 
 __Arguments:__
 
-`worker(job, done)` - An asynchronous function for processing a queued `job`, which must call its `done` argument when finished. Callback `done` may take various argumens, but first argument must be error or null.
+`worker(job, done)` - An asynchronous function for processing a queued `job`, which must call its `done` argument when finished. Callback `done` may take various argumens, but first argument must be error (if job failed), null/undefined (if job successfully finished) or boolean (if job returned to queue head (if `true`) or to queue tail (if `false`)).
 `concurrency` - An integer for determining how many worker functions should be run in parallel. If omitted, the concurrency defaults to 1.
 
 __Queue object properties__
@@ -155,9 +155,11 @@ _You can assign callback function to this six properties. Note, you can't call a
 
 `drain` - a callback that is called when the last item from the queue has returned from the worker.
 
-`error` (___new___) - a callback that is called when job failed (worker call `done` with not `false` first argument).
+`error` (___new___) - a callback that is called when job failed (worker call `done` with error as first argument).
 
-`success` (___new___) - a callback that is called when job correctly finished (worker call `done` with `false` equivalent as first argument).
+`success` (___new___) - a callback that is called when job correctly finished (worker call `done` with `null` or `undefined` as first argument).
+
+`retry` (___new___) - a callback that is called when job returned to queue (worker call `done` with boolean as first argument).
 
 _Note, that `error`/`success` is called after job has been moved from `active` to `failed`/`finished` and after job callback (from `push`/`unshift`) was called._
 

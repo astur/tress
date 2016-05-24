@@ -18,6 +18,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     var _onUnsaturated = function(){};
     var _onError = function(){};
     var _onSuccess = function(){};
+    var _onRetry = function(){};
 
     var _startJob = function(){
         if(_queue.waiting.length === 0 && _queue.active.length === 0) _onDrain();
@@ -32,11 +33,16 @@ function Tress(worker, concurrency){ // function worker(job, done)
 
         worker(job.data, function(err){
             _queue.active = _queue.active.filter((v) => v !== job);
-            _queue[err ? 'failed' : 'finished'].push(job);
             if (_queue.active.length <= _concurrency - this.buffer) _onUnsaturated();
-            job.callback && job.callback.apply(job.data, arguments);
-            err && _onError.apply(job.data, arguments);
-            !err && _onSuccess.apply(job.data, Array.prototype.slice.call(arguments, 1));
+            if (typeof err === 'boolean'){
+                _queue.waiting[err ? 'unshift' : 'push'](job);
+                _onRetry.apply(job.data, Array.prototype.slice.call(arguments, 1));
+            } else {
+                _queue[err ? 'failed' : 'finished'].push(job);
+                job.callback && job.callback.apply(job.data, arguments);
+                err && _onError.apply(job.data, arguments);
+                !err && _onSuccess.apply(job.data, Array.prototype.slice.call(arguments, 1));
+            }
             process.nextTick(_startJob);
         });
 
@@ -116,6 +122,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     Object.defineProperty(this, 'unsaturated', { set: (f) => {_onUnsaturated = _set(f);}});
     Object.defineProperty(this, 'error', { set: (f) => {_onError = _set(f);}});
     Object.defineProperty(this, 'success', { set: (f) => {_onSuccess = _set(f);}});
+    Object.defineProperty(this, 'retry', { set: (f) => {_onRetry = _set(f);}});
     Object.defineProperty(this, 'concurrency', { get: () => _concurrency, set: (v) => {
         _concurrency = v;
     }});
