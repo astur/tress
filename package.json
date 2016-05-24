@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Easy to use asynchronous job queue. Successor of 'caolan/async.queue'.",
   "main": "index.js",
+  "engines" : {
+    "node" : ">4.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/astur/tress.git"

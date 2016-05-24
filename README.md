@@ -76,6 +76,8 @@ Every code using `caolan/async.queue` __must__ work with `tress`. If it does not
 
 All documentation of `caolan/async.queue` is right for `tress`, but it doesn't describe it completely. Any way, you can use `tress` only with [this](https://github.com/caolan/async#queue) documentation and don't even think about any extra features.
 
+Only exception - `tress` require `Node.js 4+` and doesn't work in browsers.
+
 Main difference between `tress` and `caolan/async.queue` is that in `tress` job not disappear after worker finished. It moves to `failed` or `finished` (depends of `done` first argument) and can be used later.
 
 Second difference is that in `tress` fields of queue object are more safe. They are readable/writable only in correct way.
