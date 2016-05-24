@@ -37,10 +37,10 @@ function Tress(worker, concurrency){ // function worker(job, done)
             job.callback && job.callback.apply(job.data, arguments);
             err && _onError.apply(job.data, arguments);
             !err && _onSuccess.apply(job.data, Array.prototype.slice.call(arguments, 1));
-            _startJob();
+            process.nextTick(_startJob);
         });
 
-        _startJob();
+        process.nextTick(_startJob);
     };
 
     var _addJob = function(job, callback, prior){
@@ -67,7 +67,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
             _queue.waiting.push(jobObject);
         }
 
-        _startJob();
+        process.nextTick(_startJob);
     };
 
     _push = (job, callback) => _addJob(job, callback);
@@ -80,7 +80,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     _pause = () => _paused = true;
     _resume = () => {
         _paused = false;
-        _startJob();
+        process.nextTick(_startJob);
     };
     _kill = () => {
         _onDrain = function(){};
@@ -100,7 +100,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
             failed: data.failed.map(mapper),
             finished: data.finished.map(mapper)
         };
-        !_paused && _startJob();
+        !_paused && process.nextTick(_startJob);
     };
     _status = (job) => {
             _queue.waiting.indexOf(job) >= 0 ? 'waiting' :
