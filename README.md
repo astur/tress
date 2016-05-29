@@ -91,13 +91,13 @@ Also `tress` has some new fields in queue object.
 __Arguments:__
 
 `worker(job, done)` - An asynchronous function for processing a queued `job`, which must call its `done` argument when finished. Callback `done` may take various argumens, but first argument must be error (if job failed), null/undefined (if job successfully finished) or boolean (if job returned to queue head (if `true`) or to queue tail (if `false`)).
-`concurrency` - An integer for determining how many worker functions should be run in parallel. If omitted, the concurrency defaults to 1.
+`concurrency` - An integer for determining how many worker functions should be run in parallel. If omitted, the concurrency defaults to 1. If negative - no parallel and delay between worker functions (concurrency -1000 sets 1 second delay).
 
 __Queue object properties__
 
 `started` - still `false` till any items have been pushed and processed by the queue. Than became `true` and never change in queue lifecycle (Not writable).
 
-`concurrency` - an integer for determining how many worker functions should be run in parallel. This property can be changed after a queue is created to alter the concurrency on-the-fly.
+`concurrency` - This property for alter the concurrency/delay on-the-fly.
 
 `buffer` A minimum threshold buffer in order to say that the queue is unsaturated.
 
