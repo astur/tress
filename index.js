@@ -3,6 +3,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     if(!(this instanceof Tress)) {return new Tress(worker, concurrency);}
 
     var _concurrency = concurrency || 1;
+    var _buffer = _concurrency / 4;
     var _paused = false;
     var _started = false;
     var _queue = {
@@ -76,28 +77,27 @@ function Tress(worker, concurrency){ // function worker(job, done)
         process.nextTick(_startJob);
     };
 
-    _push = (job, callback) => _addJob(job, callback);
-    _unshift = (job, callback) => _addJob(job, callback, true);
-    _length = () => _queue.waiting.length;
-    _running = () => _queue.active.length;
-    _workersList = () => _queue.active;
-    _idle = () => _queue.waiting.length + _queue.active.length === 0;
-    _buffer = _concurrency / 4;
-    _pause = () => _paused = true;
-    _resume = () => {
+    var _push = (job, callback) => _addJob(job, callback);
+    var _unshift = (job, callback) => _addJob(job, callback, true);
+    var _length = () => _queue.waiting.length;
+    var _running = () => _queue.active.length;
+    var _workersList = () => _queue.active;
+    var _idle = () => _queue.waiting.length + _queue.active.length === 0;
+    var _pause = () => _paused = true;
+    var _resume = () => {
         _paused = false;
         process.nextTick(_startJob);
     };
-    _kill = () => {
+    var _kill = () => {
         _onDrain = function(){};
         _queue.waiting = [];
     };
-    _save = (callback) => callback({
+    var _save = (callback) => callback({
         waiting: _queue.waiting.slice().concat(_queue.active).map((v) => v.data),
         failed: _queue.failed.slice().map((v) => v.data),
         finished: _queue.finished.slice().map((v) => v.data)
     });
-    _load = (data) => {
+    var _load = (data) => {
         if (_started) throw new Error('Unable to load data after queue started');
         var mapper = (v) => {return {data: v, callback: _set()}};
         _queue = {
@@ -108,7 +108,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
         };
         !_paused && process.nextTick(_startJob);
     };
-    _status = (job) => {
+    var _status = (job) => {
             _queue.waiting.indexOf(job) >= 0 ? 'waiting' :
             _queue.running.indexOf(job) >= 0 ? 'running' :
             _queue.finished.indexOf(job) >= 0 ? 'finished' :
