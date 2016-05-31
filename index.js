@@ -125,7 +125,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     Object.defineProperty(this, 'success', { set: (f) => {_onSuccess = _set(f);}});
     Object.defineProperty(this, 'retry', { set: (f) => {_onRetry = _set(f);}});
     Object.defineProperty(this, 'concurrency', {
-        get: () => (_concurrency > 1 ? _concurrency : -_delay),
+        get: () => (_delay > 0 ? -_delay : _concurrency),
         set: (v) => {
             _concurrency = v > 0 ? v : 1;
             _delay = v < 0 ? -v : 0;
