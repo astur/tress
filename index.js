@@ -33,7 +33,14 @@ function Tress(worker, concurrency){ // function worker(job, done)
         _queue.active.push(job);
         if(_queue.active.length === _concurrency) _onSaturated();
 
+        var doneCalled = false;
+
         setTimeout(worker, delayable ? _delay : 0, job.data, function(err){
+            if(doneCalled){
+                throw new Error('Too many callback calls in worker');
+            } else {
+                doneCalled = true;
+            }
             _queue.active = _queue.active.filter((v) => v !== job);
             if (_queue.active.length <= _concurrency - this.buffer) _onUnsaturated();
             if (typeof err === 'boolean'){
