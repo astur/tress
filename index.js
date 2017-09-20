@@ -75,7 +75,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
             _queue.waiting.push(jobObject);
         }
 
-        _startJob();
+        setTimeout(_startJob, 0);
     };
 
     var _push = (job, callback) => _addJob(job, callback);
