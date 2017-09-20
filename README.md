@@ -55,7 +55,7 @@ q.unshift({name: 'Cristobal Jose Junta'});
 
 ## Quick Guide
 
-Basically `tress` is a clone of [`queue`](https://github.com/caolan/async#queue) from famous [`caolan/async`](https://github.com/caolan/async) but without all other implements of that Swiss Army Knife of asynchronous code. Although `tress` was intended to be an extended and more safe alternative of `caolan/async.queue`, but first and foremost `tress` is backward compatible. It means, that everywhere you use `async.queue` (except undocumented features) you can write `tress` instead and it __must__ work.
+Basically `tress` is a clone of [`queue`](http://caolan.github.io/async/docs.html#queue) from famous [`caolan/async`](https://github.com/caolan/async) but without all other implements of that Swiss Army Knife of asynchronous code. Although `tress` was intended to be an extended and more safe alternative of `caolan/async.queue`, but first and foremost `tress` is backward compatible. It means, that everywhere you use `async.queue` (except undocumented features) you can write `tress` instead and it __must__ work.
 
 You can do like this:
 
@@ -74,7 +74,7 @@ var q = tress(function(job, done){/*...*/});
 
 Every code using `caolan/async.queue` __must__ work with `tress`. If it does not work exactly the same way, please [start the issue](https://github.com/astur/tress/issues).
 
-All documentation of `caolan/async.queue` is right for `tress`, but it doesn't describe it completely. Any way, you can use `tress` only with [this](https://github.com/caolan/async#queue) documentation and don't even think about any extra features.
+All documentation of `caolan/async.queue` is right for `tress`, but it doesn't describe it completely. Any way, you can use `tress` only with [this](http://caolan.github.io/async/docs.html#queue) documentation and don't even think about any extra features.
 
 Only exception - `tress` require `Node.js 4+` and doesn't work in browsers.
 
