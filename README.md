@@ -2,6 +2,9 @@
 
 Easy to use asynchronous job queue. It stores jobs in the memory and runs it asynchronously in parallel with a given concurrency. Successor of `caolan/async.queue`.
 
+[![Build Status][travis-image]][travis-url]
+[![NPM version][npm-image]][npm-url]
+
 ## Install
 
 ```bash
@@ -166,3 +169,8 @@ _Note, that `error`/`success` is called after job has been moved from `active` t
 ## License
 
 MIT
+
+[npm-url]: https://npmjs.org/package/tress
+[npm-image]: https://badge.fury.io/js/tress.svg
+[travis-url]: https://travis-ci.org/astur/tress
+[travis-image]: https://travis-ci.org/astur/tress.svg?branch=master
