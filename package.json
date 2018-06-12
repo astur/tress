@@ -3,18 +3,14 @@
   "version": "1.0.5",
   "description": "Easy to use asynchronous job queue. Successor of 'caolan/async.queue'.",
   "main": "index.js",
-  "engines" : {
-    "node" : ">4.0.0"
-  },
+  "author": "astur <astur@yandex.ru> (http://kozlov.am/)",
   "repository": {
     "type": "git",
     "url": "https://github.com/astur/tress.git"
   },
-  "bugs": {
-    "url": "https://github.com/astur/tress/issues"
+  "engines" : {
+    "node" : ">8.0.0"
   },
-  "homepage": "https://github.com/astur/tress",
-  "author": "astur <astur@yandex.ru> (http://kozlov.am/)",
   "keywords": [
     "async",
     "queue"
