@@ -5,7 +5,7 @@
   "main": "index.js",
   "author": "astur <astur@yandex.ru> (http://kozlov.am/)",
   "scripts": {
-    "test": "eslint ."
+    "test": "eslint . && ava"
   },
   "repository": {
     "type": "git",
@@ -15,6 +15,7 @@
     "node": ">8.0.0"
   },
   "devDependencies": {
+    "ava": "^0.25.0",
     "eslint": "^4.7.2",
     "eslint-config-astur": "0.0.2"
   },
