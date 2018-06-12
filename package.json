@@ -4,12 +4,19 @@
   "description": "Easy to use asynchronous job queue. Successor of 'caolan/async.queue'.",
   "main": "index.js",
   "author": "astur <astur@yandex.ru> (http://kozlov.am/)",
+  "scripts": {
+    "test": "eslint ."
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/astur/tress.git"
   },
-  "engines" : {
-    "node" : ">8.0.0"
+  "engines": {
+    "node": ">8.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^4.7.2",
+    "eslint-config-astur": "0.0.2"
   },
   "keywords": [
     "async",
