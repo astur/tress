@@ -147,6 +147,12 @@ test.cb('changing concurrency', t => {
         t.end();
     };
     q.push('*'.repeat(50).split(''));
+    t.throws(() => {
+        q.concurrency = 'not number';
+    });
+    t.throws(() => {
+        q.concurrency = 0;
+    });
     q.concurrency = -10;
     t.is(q.concurrency, -10);
     q.concurrency = 10;
@@ -168,6 +174,7 @@ test.cb('delay', t => {
 
 test('zero concurrency error', t => {
     t.throws(() => tress((job, done) => done(null), 0));
+    t.throws(() => tress((job, done) => done(null), 'not number'));
 });
 
 test('bad callback errors', t => {

@@ -4,10 +4,11 @@ const _set = (v = _noop) => {
     throw new Error('Type must be function');
 };
 
-module.exports = (worker, concurrency) => { // function worker(job, done)
+module.exports = (worker, concurrency = 1) => { // function worker(job, done)
     const tress = {};
 
     if(concurrency === 0) throw new Error('Concurrency can not be 0');
+    if(typeof concurrency !== 'number') throw new Error('Concurrency must be a number');
     if(typeof worker !== 'function') throw new Error('Worker must be a function');
     let _concurrency = concurrency > 0 ? concurrency : 1;
     let _delay = concurrency < 0 ? -concurrency : 0;
@@ -182,6 +183,8 @@ module.exports = (worker, concurrency) => { // function worker(job, done)
     Object.defineProperty(tress, 'concurrency', {
         get: () => _delay > 0 ? -_delay : _concurrency,
         set: v => {
+            if(v === 0) throw new Error('Concurrency can not be 0');
+            if(typeof v !== 'number') throw new Error('Concurrency must be a number');
             _concurrency = v > 0 ? v : 1;
             _delay = v < 0 ? -v : 0;
         },
