@@ -147,7 +147,10 @@ test.cb('changing concurrency', t => {
         t.end();
     };
     q.push('*'.repeat(50).split(''));
+    q.concurrency = -10;
+    t.is(q.concurrency, -10);
     q.concurrency = 10;
+    t.is(q.concurrency, 10);
 });
 
 test.cb('delay', t => {
