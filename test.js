@@ -202,3 +202,57 @@ test.cb('double callback error', t => {
     });
     q.push(true);
 });
+
+test.cb('status', t => {
+    const q = tress((job, done) => {
+        t.is(q.status(job), 'active');
+        done(job === 'good' ? null : new Error());
+    });
+    q.drain = () => {
+        t.is(q.status('good'), 'finished');
+        t.is(q.status('bad'), 'failed');
+        t.end();
+    };
+    q.pause();
+    t.false(q.started);
+    q.push(['good', 'bad']);
+    t.true(q.started);
+    t.is(q.status('good'), 'waiting');
+    t.is(q.status('bad'), 'waiting');
+    t.true(q.paused);
+    q.resume();
+    t.false(q.paused);
+});
+
+test.cb('length/running/workersList/idle', t => {
+    const q = tress((job, done) => {
+        setTimeout(() => done(null), 10);
+    }, 2);
+    q.drain = () => {
+        t.end();
+    };
+    t.true(q.idle());
+    t.is(q.length(), 0);
+    t.is(q.running(), 0);
+    t.deepEqual(q.workersList(), []);
+    q.push(['foo', 'bar', 'baz']);
+    setTimeout(() => {
+        t.false(q.idle());
+        t.is(q.length(), 1);
+        t.is(q.running(), 2);
+        t.deepEqual(q.workersList().map(v => v.data), ['foo', 'bar']);
+    }, 0);
+});
+
+test.cb('kill', t => {
+    const q = tress((job, done) => {
+        setTimeout(() => done(null), 20);
+    });
+    q.drain = () => {
+        t.fail();
+    };
+    q.push('');
+    q.push('', () => t.fail());
+    q.kill();
+    setTimeout(() => t.end(), 40);
+});
