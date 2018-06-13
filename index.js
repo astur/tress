@@ -3,16 +3,16 @@ const hp = require('hard-prop');
 const _noop = () => {};
 const _set = (v = _noop) => {
     if(type.isFunction(v)) return v;
-    throw new Error('Type must be function');
+    throw new TypeError('Function expected');
 };
 
 module.exports = (worker, concurrency = 1) => { // function worker(job, done)
     const tress = {};
     const _hp = hp(tress);
 
-    if(concurrency === 0) throw new Error('Concurrency can not be 0');
-    if(!type.isNumber(concurrency)) throw new Error('Concurrency must be a number');
-    if(!type.isFunction(worker)) throw new Error('Worker must be a function');
+    if(concurrency === 0) throw new RangeError('Concurrency can not be 0');
+    if(!type.isNumber(concurrency)) throw new TypeError('Concurrency must be a number');
+    if(!type.isFunction(worker)) throw new TypeError('Worker must be a function');
     let _concurrency = concurrency > 0 ? concurrency : 1;
     let _delay = concurrency < 0 ? -concurrency : 0;
     let _buffer = _concurrency / 4;
@@ -78,7 +78,7 @@ module.exports = (worker, concurrency = 1) => { // function worker(job, done)
 
     const _addJob = (job, callback, prior) => {
         _started = true;
-        if(type.isFunction(job) || type.isUndefined(job)) throw new Error(`Unable to add ${type(job)} to queue`);
+        if(type.isFunction(job) || type.isUndefined(job)) throw new TypeError(`Unable to add ${type(job)} to queue`);
         if(type.isArray(job)){
             job.forEach(j => _addJob(j, callback, prior));
             return;
@@ -158,8 +158,8 @@ module.exports = (worker, concurrency = 1) => { // function worker(job, done)
         _onRetry = _set(f);
     });
     _hp('concurrency', () => _delay > 0 ? -_delay : _concurrency, v => {
-        if(v === 0) throw new Error('Concurrency can not be 0');
-        if(!type.isNumber(v)) throw new Error('Concurrency must be a number');
+        if(v === 0) throw new RangeError('Concurrency can not be 0');
+        if(!type.isNumber(v)) throw new TypeError('Concurrency must be a number');
         _concurrency = v > 0 ? v : 1;
         _delay = v < 0 ? -v : 0;
     });
@@ -177,7 +177,7 @@ module.exports = (worker, concurrency = 1) => { // function worker(job, done)
     _hp('workersList', () => _workersList);
     _hp('idle', () => _idle);
     _hp('buffer', () => _buffer, v => {
-        if(!type.isNumber(v)) throw new Error('Buffer must be a number');
+        if(!type.isNumber(v)) throw new TypeError('Buffer must be a number');
         _buffer = v;
     });
     _hp('pause', () => _pause);
