@@ -1,3 +1,9 @@
+const _noop = () => {};
+const _set = (v = _noop) => {
+    if(typeof v === 'function') return v;
+    throw new Error('Type must be function');
+};
+
 module.exports = (worker, concurrency) => { // function worker(job, done)
     const tress = {};
 
@@ -16,15 +22,15 @@ module.exports = (worker, concurrency) => { // function worker(job, done)
         finished: [],
     };
 
-    let _onDrain = function(){};
-    let _onEmpty = function(){};
-    let _onSaturated = function(){};
-    let _onUnsaturated = function(){};
-    let _onError = function(){};
-    let _onSuccess = function(){};
-    let _onRetry = function(){};
+    let _onDrain = _noop;
+    let _onEmpty = _noop;
+    let _onSaturated = _noop;
+    let _onUnsaturated = _noop;
+    let _onError = _noop;
+    let _onSuccess = _noop;
+    let _onRetry = _noop;
 
-    const _startJob = function(delayable){
+    const _startJob = delayable => {
         if(_queue.waiting.length === 0 && _queue.active.length === 0) _onDrain();
 
         if(_paused || _queue.active.length >= _concurrency || _queue.waiting.length === 0) return;
@@ -66,7 +72,7 @@ module.exports = (worker, concurrency) => { // function worker(job, done)
         _startJob();
     };
 
-    const _addJob = function(job, callback, prior){
+    const _addJob = (job, callback, prior) => {
         _started = true;
         callback = _set(callback);
         const jobType = Object.prototype.toString.call(job).slice(8, -1);
@@ -108,7 +114,7 @@ module.exports = (worker, concurrency) => { // function worker(job, done)
         _startJob();
     };
     const _kill = () => {
-        _onDrain = function(){};
+        _onDrain = _noop;
         _queue.waiting = [];
     };
     const _remove = task => {
@@ -196,11 +202,8 @@ module.exports = (worker, concurrency) => { // function worker(job, done)
     Object.defineProperty(tress, 'buffer', {
         get: () => _buffer,
         set: v => {
-            if(typeof v === 'number'){
-                _buffer = v;
-            } else {
-                throw new Error('Buffer must be a number');
-            }
+            if(typeof v !== 'number') throw new Error('Buffer must be a number');
+            _buffer = v;
         },
     });
     Object.defineProperty(tress, 'pause', {get: () => _pause});
@@ -213,9 +216,3 @@ module.exports = (worker, concurrency) => { // function worker(job, done)
 
     return tress;
 };
-
-function _set(v){
-    if(v === undefined) return function(){};
-    if(typeof v === 'function') return v;
-    throw new Error('Type must be function');
-}
