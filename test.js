@@ -92,3 +92,47 @@ test.cb('task retry cycle', t => {
     q.push([false, true], cb);
     q.push(null);
 });
+
+test.cb('push run order', t => {
+    const log = [];
+    const q = tress((job, done) => {
+        log.push(job);
+        done(null);
+    });
+    q.drain = () => {
+        t.deepEqual(log, [1, 2, 3, 4]);
+        t.end();
+    };
+    q.push([1, 2, 3, 4]);
+});
+
+test.cb('unshift run order', t => {
+    const log = [];
+    const q = tress((job, done) => {
+        log.push(job);
+        done(null);
+    });
+    q.drain = () => {
+        t.deepEqual(log, [4, 3, 2, 1]);
+        t.end();
+    };
+    q.unshift([1, 2, 3, 4]);
+});
+
+test.cb('concurrency run order', t => {
+    const starts = [];
+    const finishes = [];
+    const q = tress((job, done) => {
+        starts.push(job);
+        t.is(q.concurrency, 2);
+        setTimeout(() => done(null, job), job);
+    }, 2);
+    q.drain = () => {
+        t.deepEqual(starts, [30, 20, 70, 10]);
+        t.deepEqual(finishes, [20, 30, 10, 70]);
+        t.end();
+    };
+    q.push([30, 20, 70, 10], (e, job) => {
+        finishes.push(job);
+    });
+});
