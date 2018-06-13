@@ -1,192 +1,192 @@
 const type = require('easytype');
-const hp = require('hard-prop');
-const _noop = () => {};
-const _set = (v = _noop) => {
+const hardProp = require('hard-prop');
+const noop = () => {};
+const safeSet = (v = noop) => {
     if(type.isFunction(v)) return v;
     throw new TypeError('Function expected');
 };
 
 module.exports = (worker, concurrency = 1) => { // function worker(job, done)
     const tress = {};
-    const _hp = hp(tress);
+    const hp = hardProp(tress);
 
     if(concurrency === 0) throw new RangeError('Concurrency can not be 0');
     if(!type.isNumber(concurrency)) throw new TypeError('Concurrency must be a number');
     if(!type.isFunction(worker)) throw new TypeError('Worker must be a function');
-    let _concurrency = concurrency > 0 ? concurrency : 1;
-    let _delay = concurrency < 0 ? -concurrency : 0;
-    let _buffer = _concurrency / 4;
-    let _paused = false;
-    let _started = false;
-    let _saturated = false;
-    let _queue = {
+    let delay = concurrency < 0 ? -concurrency : 0;
+    concurrency = concurrency > 0 ? concurrency : 1;
+    let buffer = concurrency / 4;
+    let paused = false;
+    let started = false;
+    let saturated = false;
+    let queue = {
         waiting: [],
         active: [],
         failed: [],
         finished: [],
     };
 
-    let _onDrain = _noop;
-    let _onEmpty = _noop;
-    let _onSaturated = _noop;
-    let _onUnsaturated = _noop;
-    let _onError = _noop;
-    let _onSuccess = _noop;
-    let _onRetry = _noop;
+    let onDrain = noop;
+    let onEmpty = noop;
+    let onSaturated = noop;
+    let onUnsaturated = noop;
+    let onError = noop;
+    let onSuccess = noop;
+    let onRetry = noop;
 
-    const _startJob = delayable => {
-        if(_queue.waiting.length === 0 && _queue.active.length === 0) _onDrain();
+    const startJob = delayable => {
+        if(queue.waiting.length === 0 && queue.active.length === 0) onDrain();
 
-        if(_paused || _queue.active.length >= _concurrency || _queue.waiting.length === 0) return;
+        if(paused || queue.active.length >= concurrency || queue.waiting.length === 0) return;
 
-        const job = _queue.waiting.shift();
-        _queue.active.push(job);
+        const job = queue.waiting.shift();
+        queue.active.push(job);
 
-        if(_queue.waiting.length === 0) _onEmpty();
-        if(_queue.active.length === _concurrency && !_saturated){
-            _saturated = true;
-            _onSaturated();
+        if(queue.waiting.length === 0) onEmpty();
+        if(queue.active.length === concurrency && !saturated){
+            saturated = true;
+            onSaturated();
         }
 
         let doneCalled = false;
 
-        setTimeout(worker, delayable ? _delay : 0, job.data, (err, ...args) => {
+        setTimeout(worker, delayable ? delay : 0, job.data, (err, ...args) => {
             if(doneCalled){
                 throw new Error('Too many callback calls in worker');
             } else {
                 doneCalled = true;
             }
-            _queue.active = _queue.active.filter(v => v !== job);
+            queue.active = queue.active.filter(v => v !== job);
             if(typeof err === 'boolean'){
-                _queue.waiting[err ? 'unshift' : 'push'](job);
-                _onRetry.call(job.data, ...args);
+                queue.waiting[err ? 'unshift' : 'push'](job);
+                onRetry.call(job.data, ...args);
             } else {
-                _queue[err ? 'failed' : 'finished'].push(job);
+                queue[err ? 'failed' : 'finished'].push(job);
                 job.callback.call(job.data, err, ...args);
-                if(err) _onError.call(job.data, err, ...args);
-                if(!err) _onSuccess.call(job.data, ...args);
+                if(err) onError.call(job.data, err, ...args);
+                if(!err) onSuccess.call(job.data, ...args);
             }
-            if(_queue.active.length <= _concurrency - _buffer && _saturated){
-                _saturated = false;
-                _onUnsaturated();
+            if(queue.active.length <= concurrency - buffer && saturated){
+                saturated = false;
+                onUnsaturated();
             }
-            _startJob(true);
+            startJob(true);
         });
 
-        _startJob();
+        startJob();
     };
 
-    const _addJob = (job, callback, prior) => {
-        _started = true;
+    const addJob = (job, callback, prior) => {
+        started = true;
         if(type.isFunction(job) || type.isUndefined(job)) throw new TypeError(`Unable to add ${type(job)} to queue`);
         if(type.isArray(job)){
-            job.forEach(j => _addJob(j, callback, prior));
+            job.forEach(j => addJob(j, callback, prior));
             return;
         }
         const jobObject = {
             data: job,
-            callback: _set(callback),
+            callback: safeSet(callback),
         };
-        _queue.waiting[prior ? 'unshift' : 'push'](jobObject);
+        queue.waiting[prior ? 'unshift' : 'push'](jobObject);
 
-        setTimeout(_startJob, 0);
+        setTimeout(startJob, 0);
     };
 
-    const _push = (job, callback) => _addJob(job, callback);
-    const _unshift = (job, callback) => _addJob(job, callback, true);
-    const _length = () => _queue.waiting.length;
-    const _running = () => _queue.active.length;
-    const _workersList = () => _queue.active;
-    const _idle = () => _queue.waiting.length + _queue.active.length === 0;
-    const _pause = () => {
-        _paused = true;
+    const push = (job, callback) => addJob(job, callback);
+    const unshift = (job, callback) => addJob(job, callback, true);
+    const length = () => queue.waiting.length;
+    const running = () => queue.active.length;
+    const workersList = () => queue.active;
+    const idle = () => queue.waiting.length + queue.active.length === 0;
+    const pause = () => {
+        paused = true;
     };
-    const _resume = () => {
-        _paused = false;
-        _startJob();
+    const resume = () => {
+        paused = false;
+        startJob();
     };
-    const _kill = () => {
-        _onDrain = _noop;
-        _queue.waiting = [];
+    const kill = () => {
+        onDrain = noop;
+        queue.waiting = [];
     };
-    const _remove = task => {
-        _queue.waiting = _queue.waiting.filter(v => v.data === task);
+    const remove = task => {
+        queue.waiting = queue.waiting.filter(v => v.data === task);
     };
-    const _save = callback => callback({
-        waiting: _queue.waiting.slice().concat(_queue.active).map(v => v.data),
-        failed: _queue.failed.slice().map(v => v.data),
-        finished: _queue.finished.slice().map(v => v.data),
+    const save = callback => callback({
+        waiting: queue.waiting.slice().concat(queue.active).map(v => v.data),
+        failed: queue.failed.slice().map(v => v.data),
+        finished: queue.finished.slice().map(v => v.data),
     });
-    const _load = data => {
-        if(_started) throw new Error('Unable to load data after queue started');
-        _started = true;
-        const mapper = v => ({data: v, callback: _set()});
-        _queue = {
+    const load = data => {
+        if(started) throw new Error('Unable to load data after queue started');
+        started = true;
+        const mapper = v => ({data: v, callback: safeSet()});
+        queue = {
             waiting: (data.waiting || []).map(mapper),
             active: [],
             failed: (data.failed || []).map(mapper),
             finished: (data.finished || []).map(mapper),
         };
-        if(!_paused) _startJob();
+        if(!paused) startJob();
     };
-    const _status = job =>
-        _queue.waiting.map(v => v.data).includes(job) ? 'waiting' :
-            _queue.active.map(v => v.data).includes(job) ? 'active' :
-                _queue.finished.map(v => v.data).includes(job) ? 'finished' :
-                    _queue.failed.map(v => v.data).includes(job) ? 'failed' :
+    const status = job =>
+        queue.waiting.map(v => v.data).includes(job) ? 'waiting' :
+            queue.active.map(v => v.data).includes(job) ? 'active' :
+                queue.finished.map(v => v.data).includes(job) ? 'finished' :
+                    queue.failed.map(v => v.data).includes(job) ? 'failed' :
                         'missing';
 
-    _hp('drain', f => {
-        _onDrain = _set(f);
+    hp('drain', f => {
+        onDrain = safeSet(f);
     });
-    _hp('empty', f => {
-        _onEmpty = _set(f);
+    hp('empty', f => {
+        onEmpty = safeSet(f);
     });
-    _hp('saturated', f => {
-        _onSaturated = _set(f);
+    hp('saturated', f => {
+        onSaturated = safeSet(f);
     });
-    _hp('unsaturated', f => {
-        _onUnsaturated = _set(f);
+    hp('unsaturated', f => {
+        onUnsaturated = safeSet(f);
     });
-    _hp('error', f => {
-        _onError = _set(f);
+    hp('error', f => {
+        onError = safeSet(f);
     });
-    _hp('success', f => {
-        _onSuccess = _set(f);
+    hp('success', f => {
+        onSuccess = safeSet(f);
     });
-    _hp('retry', f => {
-        _onRetry = _set(f);
+    hp('retry', f => {
+        onRetry = safeSet(f);
     });
-    _hp('concurrency', () => _delay > 0 ? -_delay : _concurrency, v => {
+    hp('concurrency', () => delay > 0 ? -delay : concurrency, v => {
         if(v === 0) throw new RangeError('Concurrency can not be 0');
         if(!type.isNumber(v)) throw new TypeError('Concurrency must be a number');
-        _concurrency = v > 0 ? v : 1;
-        _delay = v < 0 ? -v : 0;
+        concurrency = v > 0 ? v : 1;
+        delay = v < 0 ? -v : 0;
     });
-    _hp('paused', () => _paused);
-    _hp('started', () => _started);
-    _hp('waiting', () => _queue.waiting);
-    _hp('active', () => _queue.active);
-    _hp('failed', () => _queue.failed);
-    _hp('finished', () => _queue.finished);
+    hp('paused', () => paused);
+    hp('started', () => started);
+    hp('waiting', () => queue.waiting);
+    hp('active', () => queue.active);
+    hp('failed', () => queue.failed);
+    hp('finished', () => queue.finished);
 
-    _hp('push', () => _push);
-    _hp('unshift', () => _unshift);
-    _hp('length', () => _length);
-    _hp('running', () => _running);
-    _hp('workersList', () => _workersList);
-    _hp('idle', () => _idle);
-    _hp('buffer', () => _buffer, v => {
+    hp('push', () => push);
+    hp('unshift', () => unshift);
+    hp('length', () => length);
+    hp('running', () => running);
+    hp('workersList', () => workersList);
+    hp('idle', () => idle);
+    hp('buffer', () => buffer, v => {
         if(!type.isNumber(v)) throw new TypeError('Buffer must be a number');
-        _buffer = v;
+        buffer = v;
     });
-    _hp('pause', () => _pause);
-    _hp('resume', () => _resume);
-    _hp('kill', () => _kill);
-    _hp('remove', () => _remove);
-    _hp('save', () => _save);
-    _hp('load', () => _load);
-    _hp('status', () => _status);
+    hp('pause', () => pause);
+    hp('resume', () => resume);
+    hp('kill', () => kill);
+    hp('remove', () => remove);
+    hp('save', () => save);
+    hp('load', () => load);
+    hp('status', () => status);
 
     return tress;
 };
