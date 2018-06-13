@@ -256,3 +256,27 @@ test.cb('kill', t => {
     q.kill();
     setTimeout(() => t.end(), 40);
 });
+
+test.cb('pause in worker with concurrency', t => {
+    const log = [];
+    const q = tress((job, done) => {
+        if(job === 1){
+            q.pause();
+            setTimeout(() => {
+                q.resume();
+                log.push(job);
+                done(null);
+            }, 30);
+        } else {
+            setTimeout(() => {
+                log.push(job);
+                done(null);
+            }, 10);
+        }
+    }, 2);
+    q.drain = () => {
+        t.deepEqual(log, [2, 1, 3]);
+        t.end();
+    };
+    q.push([1, 2, 3]);
+});
