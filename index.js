@@ -118,12 +118,13 @@ function Tress(worker, concurrency){ // function worker(job, done)
     });
     const _load = data => {
         if(_started) throw new Error('Unable to load data after queue started');
+        _started = true;
         const mapper = v => ({data: v, callback: _set()});
         _queue = {
-            waiting: data.waiting.map(mapper),
+            waiting: (data.waiting || []).map(mapper),
             active: [],
-            failed: data.failed.map(mapper),
-            finished: data.finished.map(mapper),
+            failed: (data.failed || []).map(mapper),
+            finished: (data.finished || []).map(mapper),
         };
         if(!_paused) _startJob();
     };
