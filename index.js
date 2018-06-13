@@ -8,6 +8,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     let _buffer = _concurrency / 4;
     let _paused = false;
     let _started = false;
+    let _saturated = false;
     let _queue = {
         waiting: [],
         active: [],
@@ -29,10 +30,13 @@ function Tress(worker, concurrency){ // function worker(job, done)
         if(_paused || _queue.active.length >= _concurrency || _queue.waiting.length === 0) return;
 
         const job = _queue.waiting.shift();
-        if(_queue.waiting.length === 0) _onEmpty();
-
         _queue.active.push(job);
-        if(_queue.active.length === _concurrency) _onSaturated();
+
+        if(_queue.waiting.length === 0) _onEmpty();
+        if(_queue.active.length === _concurrency && !_saturated){
+            _saturated = true;
+            _onSaturated();
+        }
 
         let doneCalled = false;
 
@@ -43,7 +47,10 @@ function Tress(worker, concurrency){ // function worker(job, done)
                 doneCalled = true;
             }
             _queue.active = _queue.active.filter(v => v !== job);
-            if(_queue.active.length <= _concurrency - this.buffer) _onUnsaturated();
+            if(_queue.active.length <= _concurrency - this.buffer && _saturated){
+                _saturated = false;
+                _onUnsaturated();
+            }
             if(typeof err === 'boolean'){
                 _queue.waiting[err ? 'unshift' : 'push'](job);
                 _onRetry.call(job.data, ...args);
