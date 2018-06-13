@@ -227,6 +227,7 @@ test.cb('status', t => {
     t.true(q.paused);
     q.resume();
     t.false(q.paused);
+    t.is(q.status('ugly'), 'missing');
 });
 
 test.cb('length/running/workersList/idle', t => {
