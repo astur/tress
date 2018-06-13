@@ -301,7 +301,9 @@ test.cb('saturation and buffer', t => {
     t.throws(() => {
         q.buffer = 'not number';
     });
-    q.buffer = 0.5;
+    t.is(q.buffer, 1);
+    q.buffer = 2;
+    t.is(q.buffer, 2);
     q.saturated = () => {
         t.is(q.active.length, 4);
         t.is(q.waiting.length, 6);
