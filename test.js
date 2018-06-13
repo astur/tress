@@ -337,18 +337,24 @@ test.cb('load', t => {
 });
 
 test.cb('save', t => {
-    const q = tress((job, done) => done(null));
-    q.pause();
-    q.push(['foo', 'bar', 'baz']);
-    q.save(dump => {
-        t.deepEqual(dump, {
-            waiting: ['foo', 'bar', 'baz'],
-            finished: [],
-            failed: [],
-        });
-        t.end();
+    const q = tress((job, done) => {
+        if(job === 'foo'){
+            return done(new Error());
+        } else if(job === 'bar'){
+            done(null); // eslint-disable-line
+            q.save(dump => {
+                t.deepEqual(dump, {
+                    waiting: ['baz'],
+                    finished: ['bar'],
+                    failed: ['foo'],
+                });
+                t.end();
+            });
+        } else {
+            return done(null);
+        }
     });
-    q.resume();
+    q.push(['foo', 'bar', 'baz']);
 });
 
 test.cb('remove', t => {
