@@ -343,3 +343,14 @@ test.cb('save', t => {
     });
     q.resume();
 });
+
+test.cb('remove', t => {
+    const q = tress((job, done) => done(null));
+    q.drain = () => {
+        t.end();
+    };
+    q.pause();
+    q.push(['foo', 'bar', 'baz']);
+    q.remove('bar');
+    q.resume();
+});
