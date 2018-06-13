@@ -24,5 +24,8 @@
     "async",
     "queue"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "easytype": "^1.0.0"
+  }
 }

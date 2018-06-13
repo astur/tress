@@ -1,6 +1,7 @@
+const type = require('easytype');
 const _noop = () => {};
 const _set = (v = _noop) => {
-    if(typeof v === 'function') return v;
+    if(type.isFunction(v)) return v;
     throw new Error('Type must be function');
 };
 
@@ -8,8 +9,8 @@ module.exports = (worker, concurrency = 1) => { // function worker(job, done)
     const tress = {};
 
     if(concurrency === 0) throw new Error('Concurrency can not be 0');
-    if(typeof concurrency !== 'number') throw new Error('Concurrency must be a number');
-    if(typeof worker !== 'function') throw new Error('Worker must be a function');
+    if(!type.isNumber(concurrency)) throw new Error('Concurrency must be a number');
+    if(!type.isFunction(worker)) throw new Error('Worker must be a function');
     let _concurrency = concurrency > 0 ? concurrency : 1;
     let _delay = concurrency < 0 ? -concurrency : 0;
     let _buffer = _concurrency / 4;
@@ -75,28 +76,16 @@ module.exports = (worker, concurrency = 1) => { // function worker(job, done)
 
     const _addJob = (job, callback, prior) => {
         _started = true;
-        callback = _set(callback);
-        const jobType = Object.prototype.toString.call(job).slice(8, -1);
-        switch (jobType){
-        case 'Array':
-            for(let i = 0; i < job.length; i++){
-                _addJob(job[i], callback, prior);
-            }
+        if(type.isFunction(job) || type.isUndefined(job)) throw new Error(`Unable to add ${type(job)} to queue`);
+        if(type.isArray(job)){
+            job.forEach(j => _addJob(j, callback, prior));
             return;
-        case 'Function':
-        case 'Undefined':
-            throw new Error(`Unable to add ${jobType} to queue`);
-        default: break;
         }
         const jobObject = {
             data: job,
-            callback,
+            callback: _set(callback),
         };
-        if(prior){
-            _queue.waiting.unshift(jobObject);
-        } else {
-            _queue.waiting.push(jobObject);
-        }
+        _queue.waiting[prior ? 'unshift' : 'push'](jobObject);
 
         setTimeout(_startJob, 0);
     };
@@ -184,7 +173,7 @@ module.exports = (worker, concurrency = 1) => { // function worker(job, done)
         get: () => _delay > 0 ? -_delay : _concurrency,
         set: v => {
             if(v === 0) throw new Error('Concurrency can not be 0');
-            if(typeof v !== 'number') throw new Error('Concurrency must be a number');
+            if(!type.isNumber(v)) throw new Error('Concurrency must be a number');
             _concurrency = v > 0 ? v : 1;
             _delay = v < 0 ? -v : 0;
         },
@@ -205,7 +194,7 @@ module.exports = (worker, concurrency = 1) => { // function worker(job, done)
     Object.defineProperty(tress, 'buffer', {
         get: () => _buffer,
         set: v => {
-            if(typeof v !== 'number') throw new Error('Buffer must be a number');
+            if(!type.isNumber(v)) throw new Error('Buffer must be a number');
             _buffer = v;
         },
     });
