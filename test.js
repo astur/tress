@@ -317,3 +317,29 @@ test.cb('saturation and buffer', t => {
     };
     q.push('*'.repeat(10).split(''));
 });
+
+test.cb('load', t => {
+    const q = tress((job, done) => done(null));
+    q.drain = () => {
+        t.end();
+    };
+    q.load({waiting: [1, 2, 3]});
+    t.throws(() => {
+        q.load({waiting: [4]});
+    });
+});
+
+test.cb('save', t => {
+    const q = tress((job, done) => done(null));
+    q.pause();
+    q.push(['foo', 'bar', 'baz']);
+    q.save(dump => {
+        t.deepEqual(dump, {
+            waiting: ['foo', 'bar', 'baz'],
+            finished: [],
+            failed: [],
+        });
+        t.end();
+    });
+    q.resume();
+});
