@@ -128,10 +128,10 @@ function Tress(worker, concurrency){ // function worker(job, done)
         if(!_paused) _startJob();
     };
     const _status = job =>
-        _queue.waiting.indexOf(job) >= 0 ? 'waiting' :
-            _queue.active.indexOf(job) >= 0 ? 'active' :
-                _queue.finished.indexOf(job) >= 0 ? 'finished' :
-                    _queue.failed.indexOf(job) >= 0 ? 'failed' :
+        _queue.waiting.map(v => v.data).includes(job) ? 'waiting' :
+            _queue.active.map(v => v.data).includes(job) ? 'active' :
+                _queue.finished.map(v => v.data).includes(job) ? 'finished' :
+                    _queue.failed.map(v => v.data).includes(job) ? 'failed' :
                         'missing';
 
     Object.defineProperty(this, 'drain', {
