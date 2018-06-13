@@ -173,6 +173,9 @@ test('bad callback errors', t => {
     t.throws(() => q.push(1, 1));
     t.throws(() => q.push());
     t.throws(() => q.push(() => {}));
+    t.throws(() => q.unshift(1, 1));
+    t.throws(() => q.unshift());
+    t.throws(() => q.unshift(() => {}));
     t.throws(() => {
         q.drain = 1;
     });
