@@ -1,6 +1,6 @@
 {
   "name": "tress",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Easy to use asynchronous job queue. Successor of 'caolan/async.queue'.",
   "main": "index.js",
   "author": "astur <astur@yandex.ru> (http://kozlov.am/)",
