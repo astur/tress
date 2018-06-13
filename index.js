@@ -1,4 +1,5 @@
 const type = require('easytype');
+const hp = require('hard-prop');
 const _noop = () => {};
 const _set = (v = _noop) => {
     if(type.isFunction(v)) return v;
@@ -7,6 +8,7 @@ const _set = (v = _noop) => {
 
 module.exports = (worker, concurrency = 1) => { // function worker(job, done)
     const tress = {};
+    const _hp = hp(tress);
 
     if(concurrency === 0) throw new Error('Concurrency can not be 0');
     if(!type.isNumber(concurrency)) throw new Error('Concurrency must be a number');
@@ -134,77 +136,57 @@ module.exports = (worker, concurrency = 1) => { // function worker(job, done)
                     _queue.failed.map(v => v.data).includes(job) ? 'failed' :
                         'missing';
 
-    Object.defineProperty(tress, 'drain', {
-        set: f => {
-            _onDrain = _set(f);
-        },
+    _hp('drain', f => {
+        _onDrain = _set(f);
     });
-    Object.defineProperty(tress, 'empty', {
-        set: f => {
-            _onEmpty = _set(f);
-        },
+    _hp('empty', f => {
+        _onEmpty = _set(f);
     });
-    Object.defineProperty(tress, 'saturated', {
-        set: f => {
-            _onSaturated = _set(f);
-        },
+    _hp('saturated', f => {
+        _onSaturated = _set(f);
     });
-    Object.defineProperty(tress, 'unsaturated', {
-        set: f => {
-            _onUnsaturated = _set(f);
-        },
+    _hp('unsaturated', f => {
+        _onUnsaturated = _set(f);
     });
-    Object.defineProperty(tress, 'error', {
-        set: f => {
-            _onError = _set(f);
-        },
+    _hp('error', f => {
+        _onError = _set(f);
     });
-    Object.defineProperty(tress, 'success', {
-        set: f => {
-            _onSuccess = _set(f);
-        },
+    _hp('success', f => {
+        _onSuccess = _set(f);
     });
-    Object.defineProperty(tress, 'retry', {
-        set: f => {
-            _onRetry = _set(f);
-        },
+    _hp('retry', f => {
+        _onRetry = _set(f);
     });
-    Object.defineProperty(tress, 'concurrency', {
-        get: () => _delay > 0 ? -_delay : _concurrency,
-        set: v => {
-            if(v === 0) throw new Error('Concurrency can not be 0');
-            if(!type.isNumber(v)) throw new Error('Concurrency must be a number');
-            _concurrency = v > 0 ? v : 1;
-            _delay = v < 0 ? -v : 0;
-        },
+    _hp('concurrency', () => _delay > 0 ? -_delay : _concurrency, v => {
+        if(v === 0) throw new Error('Concurrency can not be 0');
+        if(!type.isNumber(v)) throw new Error('Concurrency must be a number');
+        _concurrency = v > 0 ? v : 1;
+        _delay = v < 0 ? -v : 0;
     });
-    Object.defineProperty(tress, 'paused', {get: () => _paused});
-    Object.defineProperty(tress, 'started', {get: () => _started});
-    Object.defineProperty(tress, 'waiting', {get: () => _queue.waiting});
-    Object.defineProperty(tress, 'active', {get: () => _queue.active});
-    Object.defineProperty(tress, 'failed', {get: () => _queue.failed});
-    Object.defineProperty(tress, 'finished', {get: () => _queue.finished});
+    _hp('paused', () => _paused);
+    _hp('started', () => _started);
+    _hp('waiting', () => _queue.waiting);
+    _hp('active', () => _queue.active);
+    _hp('failed', () => _queue.failed);
+    _hp('finished', () => _queue.finished);
 
-    Object.defineProperty(tress, 'push', {get: () => _push});
-    Object.defineProperty(tress, 'unshift', {get: () => _unshift});
-    Object.defineProperty(tress, 'length', {get: () => _length});
-    Object.defineProperty(tress, 'running', {get: () => _running});
-    Object.defineProperty(tress, 'workersList', {get: () => _workersList});
-    Object.defineProperty(tress, 'idle', {get: () => _idle});
-    Object.defineProperty(tress, 'buffer', {
-        get: () => _buffer,
-        set: v => {
-            if(!type.isNumber(v)) throw new Error('Buffer must be a number');
-            _buffer = v;
-        },
+    _hp('push', () => _push);
+    _hp('unshift', () => _unshift);
+    _hp('length', () => _length);
+    _hp('running', () => _running);
+    _hp('workersList', () => _workersList);
+    _hp('idle', () => _idle);
+    _hp('buffer', () => _buffer, v => {
+        if(!type.isNumber(v)) throw new Error('Buffer must be a number');
+        _buffer = v;
     });
-    Object.defineProperty(tress, 'pause', {get: () => _pause});
-    Object.defineProperty(tress, 'resume', {get: () => _resume});
-    Object.defineProperty(tress, 'kill', {get: () => _kill});
-    Object.defineProperty(tress, 'remove', {get: () => _remove});
-    Object.defineProperty(tress, 'save', {get: () => _save});
-    Object.defineProperty(tress, 'load', {get: () => _load});
-    Object.defineProperty(tress, 'status', {get: () => _status});
+    _hp('pause', () => _pause);
+    _hp('resume', () => _resume);
+    _hp('kill', () => _kill);
+    _hp('remove', () => _remove);
+    _hp('save', () => _save);
+    _hp('load', () => _load);
+    _hp('status', () => _status);
 
     return tress;
 };
