@@ -57,7 +57,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
             } else {
                 _queue[err ? 'failed' : 'finished'].push(job);
                 if(job.callback) job.callback.call(job.data, err, ...args);
-                if(err) _onError.call(job.data, err, job.data, ...args);
+                if(err) _onError.call(job.data, err, ...args);
                 if(!err) _onSuccess.call(job.data, ...args);
             }
             _startJob(true);
