@@ -280,3 +280,40 @@ test.cb('pause in worker with concurrency', t => {
     };
     q.push([1, 2, 3]);
 });
+
+test.cb('empty', t => {
+    const q = tress((job, done) => {
+        setTimeout(() => done(null), 10);
+    });
+    q.empty = () => {
+        t.is(q.active.length, 1);
+        t.is(q.waiting.length, 0);
+        t.is(q.finished.length, 0);
+        t.end();
+    };
+    q.push('');
+});
+
+test.cb('saturation and buffer', t => {
+    const q = tress((job, done) => {
+        setTimeout(() => done(null), 20);
+    }, 4);
+    t.throws(() => {
+        q.buffer = 'not number';
+    });
+    q.buffer = 0.5;
+    q.saturated = () => {
+        t.is(q.active.length, 4);
+        t.is(q.waiting.length, 6);
+        t.is(q.finished.length, 0);
+    };
+    q.unsaturated = () => {
+        t.is(q.active.length, 2);
+        t.is(q.waiting.length, 0);
+        t.is(q.finished.length, 8);
+    };
+    q.drain = () => {
+        t.end();
+    };
+    q.push('*'.repeat(10).split(''));
+});
