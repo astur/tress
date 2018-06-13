@@ -331,13 +331,16 @@ test.cb('saturation and buffer', t => {
 
 test.cb('load', t => {
     const q = tress((job, done) => done(null));
-    q.drain = () => {
-        t.end();
-    };
     q.load({waiting: [1, 2, 3]});
     t.throws(() => {
         q.load({waiting: [4]});
     });
+    const qq = tress((job, done) => done(null));
+    qq.pause();
+    qq.load({failed: [1], finished: [2]});
+    t.true(qq.paused);
+    qq.resume();
+    setTimeout(() => t.end(), 20);
 });
 
 test.cb('save', t => {
