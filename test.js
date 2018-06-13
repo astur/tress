@@ -136,3 +136,29 @@ test.cb('concurrency run order', t => {
         finishes.push(job);
     });
 });
+
+test.cb('changing concurrency', t => {
+    const start = Date.now();
+    const q = tress((job, done) => {
+        setTimeout(() => done(null), 10);
+    });
+    q.drain = () => {
+        t.true(Date.now() - start < 200);
+        t.end();
+    };
+    q.push('*'.repeat(50).split(''));
+    q.concurrency = 10;
+});
+
+test.cb('delay', t => {
+    const start = Date.now();
+    const q = tress((job, done) => {
+        t.is(q.concurrency, -10);
+        done(null);
+    }, -10);
+    q.drain = () => {
+        t.true(Date.now() - start > 50);
+        t.end();
+    };
+    q.push([1, 2, 3, 4, 5]);
+});
