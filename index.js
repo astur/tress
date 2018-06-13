@@ -1,5 +1,5 @@
-function Tress(worker, concurrency){ // function worker(job, done)
-    if(!(this instanceof Tress)) return new Tress(worker, concurrency);
+module.exports = (worker, concurrency) => { // function worker(job, done)
+    const tress = {};
 
     if(concurrency === 0) throw new Error('Concurrency can not be 0');
     if(typeof worker !== 'function') throw new Error('Worker must be a function');
@@ -138,62 +138,62 @@ function Tress(worker, concurrency){ // function worker(job, done)
                     _queue.failed.map(v => v.data).includes(job) ? 'failed' :
                         'missing';
 
-    Object.defineProperty(this, 'drain', {
+    Object.defineProperty(tress, 'drain', {
         set: f => {
             _onDrain = _set(f);
         },
     });
-    Object.defineProperty(this, 'empty', {
+    Object.defineProperty(tress, 'empty', {
         set: f => {
             _onEmpty = _set(f);
         },
     });
-    Object.defineProperty(this, 'saturated', {
+    Object.defineProperty(tress, 'saturated', {
         set: f => {
             _onSaturated = _set(f);
         },
     });
-    Object.defineProperty(this, 'unsaturated', {
+    Object.defineProperty(tress, 'unsaturated', {
         set: f => {
             _onUnsaturated = _set(f);
         },
     });
-    Object.defineProperty(this, 'error', {
+    Object.defineProperty(tress, 'error', {
         set: f => {
             _onError = _set(f);
         },
     });
-    Object.defineProperty(this, 'success', {
+    Object.defineProperty(tress, 'success', {
         set: f => {
             _onSuccess = _set(f);
         },
     });
-    Object.defineProperty(this, 'retry', {
+    Object.defineProperty(tress, 'retry', {
         set: f => {
             _onRetry = _set(f);
         },
     });
-    Object.defineProperty(this, 'concurrency', {
+    Object.defineProperty(tress, 'concurrency', {
         get: () => _delay > 0 ? -_delay : _concurrency,
         set: v => {
             _concurrency = v > 0 ? v : 1;
             _delay = v < 0 ? -v : 0;
         },
     });
-    Object.defineProperty(this, 'paused', {get: () => _paused});
-    Object.defineProperty(this, 'started', {get: () => _started});
-    Object.defineProperty(this, 'waiting', {get: () => _queue.waiting});
-    Object.defineProperty(this, 'active', {get: () => _queue.active});
-    Object.defineProperty(this, 'failed', {get: () => _queue.failed});
-    Object.defineProperty(this, 'finished', {get: () => _queue.finished});
+    Object.defineProperty(tress, 'paused', {get: () => _paused});
+    Object.defineProperty(tress, 'started', {get: () => _started});
+    Object.defineProperty(tress, 'waiting', {get: () => _queue.waiting});
+    Object.defineProperty(tress, 'active', {get: () => _queue.active});
+    Object.defineProperty(tress, 'failed', {get: () => _queue.failed});
+    Object.defineProperty(tress, 'finished', {get: () => _queue.finished});
 
-    Object.defineProperty(this, 'push', {get: () => _push});
-    Object.defineProperty(this, 'unshift', {get: () => _unshift});
-    Object.defineProperty(this, 'length', {get: () => _length});
-    Object.defineProperty(this, 'running', {get: () => _running});
-    Object.defineProperty(this, 'workersList', {get: () => _workersList});
-    Object.defineProperty(this, 'idle', {get: () => _idle});
-    Object.defineProperty(this, 'buffer', {
+    Object.defineProperty(tress, 'push', {get: () => _push});
+    Object.defineProperty(tress, 'unshift', {get: () => _unshift});
+    Object.defineProperty(tress, 'length', {get: () => _length});
+    Object.defineProperty(tress, 'running', {get: () => _running});
+    Object.defineProperty(tress, 'workersList', {get: () => _workersList});
+    Object.defineProperty(tress, 'idle', {get: () => _idle});
+    Object.defineProperty(tress, 'buffer', {
         get: () => _buffer,
         set: v => {
             if(typeof v === 'number'){
@@ -203,19 +203,19 @@ function Tress(worker, concurrency){ // function worker(job, done)
             }
         },
     });
-    Object.defineProperty(this, 'pause', {get: () => _pause});
-    Object.defineProperty(this, 'resume', {get: () => _resume});
-    Object.defineProperty(this, 'kill', {get: () => _kill});
-    Object.defineProperty(this, 'remove', {get: () => _remove});
-    Object.defineProperty(this, 'save', {get: () => _save});
-    Object.defineProperty(this, 'load', {get: () => _load});
-    Object.defineProperty(this, 'status', {get: () => _status});
-}
+    Object.defineProperty(tress, 'pause', {get: () => _pause});
+    Object.defineProperty(tress, 'resume', {get: () => _resume});
+    Object.defineProperty(tress, 'kill', {get: () => _kill});
+    Object.defineProperty(tress, 'remove', {get: () => _remove});
+    Object.defineProperty(tress, 'save', {get: () => _save});
+    Object.defineProperty(tress, 'load', {get: () => _load});
+    Object.defineProperty(tress, 'status', {get: () => _status});
 
-module.exports = Tress;
+    return tress;
+};
 
 function _set(v){
-    if(v === undefined || v === null) return function(){};
+    if(v === undefined) return function(){};
     if(typeof v === 'function') return v;
     throw new Error('Type must be function');
 }
