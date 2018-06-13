@@ -2,6 +2,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     if(!(this instanceof Tress)) return new Tress(worker, concurrency);
 
     if(concurrency === 0) throw new Error('Concurrency can not be 0');
+    if(typeof worker !== 'function') throw new Error('Worker must be a function');
     let _concurrency = concurrency > 0 ? concurrency : 1;
     let _delay = concurrency < 0 ? -concurrency : 0;
     let _buffer = _concurrency / 4;
