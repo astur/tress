@@ -111,6 +111,9 @@ function Tress(worker, concurrency){ // function worker(job, done)
         _onDrain = function(){};
         _queue.waiting = [];
     };
+    const _remove = task => {
+        _queue.waiting = _queue.waiting.filter(v => v.data === task);
+    };
     const _save = callback => callback({
         waiting: _queue.waiting.slice().concat(_queue.active).map(v => v.data),
         failed: _queue.failed.slice().map(v => v.data),
@@ -203,6 +206,7 @@ function Tress(worker, concurrency){ // function worker(job, done)
     Object.defineProperty(this, 'pause', {get: () => _pause});
     Object.defineProperty(this, 'resume', {get: () => _resume});
     Object.defineProperty(this, 'kill', {get: () => _kill});
+    Object.defineProperty(this, 'remove', {get: () => _remove});
     Object.defineProperty(this, 'save', {get: () => _save});
     Object.defineProperty(this, 'load', {get: () => _load});
     Object.defineProperty(this, 'status', {get: () => _status});
