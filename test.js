@@ -171,6 +171,8 @@ test('bad callback errors', t => {
     t.throws(() => tress('non-function'));
     const q = tress((job, done) => done(null));
     t.throws(() => q.push(1, 1));
+    t.throws(() => q.push());
+    t.throws(() => q.push(() => {}));
     t.throws(() => {
         q.drain = 1;
     });
