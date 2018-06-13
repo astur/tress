@@ -7,12 +7,10 @@ const safeSet = (v = noop) => {
 };
 
 module.exports = (worker, concurrency = 1) => { // function worker(job, done)
-    const tress = {};
-    const hp = hardProp(tress);
-
     if(concurrency === 0) throw new RangeError('Concurrency can not be 0');
     if(!type.isNumber(concurrency)) throw new TypeError('Concurrency must be a number');
     if(!type.isFunction(worker)) throw new TypeError('Worker must be a function');
+
     let delay = concurrency < 0 ? -concurrency : 0;
     concurrency = concurrency > 0 ? concurrency : 1;
     let buffer = concurrency / 4;
@@ -136,6 +134,11 @@ module.exports = (worker, concurrency = 1) => { // function worker(job, done)
                     queue.failed.map(v => v.data).includes(job) ? 'failed' :
                         'missing';
 
+    // queue object:
+    const tress = {};
+    const hp = hardProp(tress);
+
+    // callbacks:
     hp('drain', f => {
         onDrain = safeSet(f);
     });
@@ -157,11 +160,17 @@ module.exports = (worker, concurrency = 1) => { // function worker(job, done)
     hp('retry', f => {
         onRetry = safeSet(f);
     });
+
+    // properties:
     hp('concurrency', () => delay > 0 ? -delay : concurrency, v => {
         if(v === 0) throw new RangeError('Concurrency can not be 0');
         if(!type.isNumber(v)) throw new TypeError('Concurrency must be a number');
         concurrency = v > 0 ? v : 1;
         delay = v < 0 ? -v : 0;
+    });
+    hp('buffer', () => buffer, v => {
+        if(!type.isNumber(v)) throw new TypeError('Buffer must be a number');
+        buffer = v;
     });
     hp('paused', () => paused);
     hp('started', () => started);
@@ -170,16 +179,13 @@ module.exports = (worker, concurrency = 1) => { // function worker(job, done)
     hp('failed', () => queue.failed);
     hp('finished', () => queue.finished);
 
+    // methods:
     hp('push', () => push);
     hp('unshift', () => unshift);
     hp('length', () => length);
     hp('running', () => running);
     hp('workersList', () => workersList);
     hp('idle', () => idle);
-    hp('buffer', () => buffer, v => {
-        if(!type.isNumber(v)) throw new TypeError('Buffer must be a number');
-        buffer = v;
-    });
     hp('pause', () => pause);
     hp('resume', () => resume);
     hp('kill', () => kill);
