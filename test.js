@@ -162,3 +162,43 @@ test.cb('delay', t => {
     };
     q.push([1, 2, 3, 4, 5]);
 });
+
+test('zero concurrency error', t => {
+    t.throws(() => tress((job, done) => done(null), 0));
+});
+
+test('bad callback errors', t => {
+    t.throws(() => tress('non-function'));
+    const q = tress((job, done) => done(null));
+    t.throws(() => q.push(1, 1));
+    t.throws(() => {
+        q.drain = 1;
+    });
+    t.throws(() => {
+        q.empty = 1;
+    });
+    t.throws(() => {
+        q.saturated = 1;
+    });
+    t.throws(() => {
+        q.unsaturated = 1;
+    });
+    t.throws(() => {
+        q.error = 1;
+    });
+    t.throws(() => {
+        q.success = 1;
+    });
+    t.throws(() => {
+        q.retry = 1;
+    });
+});
+
+test.cb('double callback error', t => {
+    const q = tress((job, done) => {
+        done(null); // eslint-disable-line
+        t.throws(() => done(null));
+        t.end();
+    });
+    q.push(true);
+});
