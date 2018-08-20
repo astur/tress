@@ -1,18 +1,18 @@
 const type = require('easytype');
 const hardProp = require('hard-prop');
-const noop = () => {};
+const noop = () => undefined;
 const safeSet = (v = noop) => {
     if(type.isFunction(v)) return v;
     throw new TypeError('Function expected');
 };
 
-module.exports = (worker, concurrency = 1) => { // function worker(job, done)
-    if(concurrency === 0) throw new RangeError('Concurrency can not be 0');
-    if(!type.isNumber(concurrency)) throw new TypeError('Concurrency must be a number');
+module.exports = (worker, _concurrency = 1) => { // function worker(job, done)
+    if(_concurrency === 0) throw new RangeError('Concurrency can not be 0');
+    if(!type.isNumber(_concurrency)) throw new TypeError('Concurrency must be a number');
     if(!type.isFunction(worker)) throw new TypeError('Worker must be a function');
 
-    let delay = concurrency < 0 ? -concurrency : 0;
-    concurrency = concurrency > 0 ? concurrency : 1;
+    let delay = _concurrency < 0 ? -_concurrency : 0;
+    let concurrency = _concurrency > 0 ? _concurrency : 1;
     let buffer = concurrency / 4;
     let paused = false;
     let started = false;
@@ -127,12 +127,11 @@ module.exports = (worker, concurrency = 1) => { // function worker(job, done)
         };
         if(!paused) startJob();
     };
-    const status = job =>
-        queue.waiting.map(v => v.data).includes(job) ? 'waiting' :
-            queue.active.map(v => v.data).includes(job) ? 'active' :
-                queue.finished.map(v => v.data).includes(job) ? 'finished' :
-                    queue.failed.map(v => v.data).includes(job) ? 'failed' :
-                        'missing';
+    const status = job => queue.waiting.map(v => v.data).includes(job) ? 'waiting' :
+        queue.active.map(v => v.data).includes(job) ? 'active' :
+            queue.finished.map(v => v.data).includes(job) ? 'finished' :
+                queue.failed.map(v => v.data).includes(job) ? 'failed' :
+                    'missing';
 
     // queue object:
     const tress = {};
