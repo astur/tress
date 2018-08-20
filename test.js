@@ -1,3 +1,4 @@
+/* eslint consistent-return: off */
 const test = require('ava');
 const tress = require('.');
 
@@ -182,10 +183,10 @@ test('bad callback errors', t => {
     const q = tress((job, done) => done(null));
     t.throws(() => q.push(1, 1));
     t.throws(() => q.push());
-    t.throws(() => q.push(() => {}));
+    t.throws(() => q.push(() => undefined));
     t.throws(() => q.unshift(1, 1));
     t.throws(() => q.unshift());
-    t.throws(() => q.unshift(() => {}));
+    t.throws(() => q.unshift(() => undefined));
     t.throws(() => {
         q.drain = 1;
     });
@@ -211,7 +212,7 @@ test('bad callback errors', t => {
 
 test.cb('double callback error', t => {
     const q = tress((job, done) => {
-        done(null); // eslint-disable-line
+        done(null); // eslint-disable-line callback-return
         t.throws(() => done(null));
         t.end();
     });
@@ -355,7 +356,7 @@ test.cb('save', t => {
         if(job === 'foo'){
             return done(new Error());
         } else if(job === 'bar'){
-            done(null); // eslint-disable-line
+            done(null); // eslint-disable-line callback-return
             q.save(dump => {
                 t.deepEqual(dump, {
                     waiting: ['baz'],
